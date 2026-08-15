@@ -1545,7 +1545,11 @@ function renderDashCpaList(pf){
   var tEl=document.getElementById('dash-list-table');
   var eEl=document.getElementById('dash-list-empty');
   var list=pf&&pf!=='all'?leads.filter(function(l){return(l.pipeline||'da_contattare')===pf;}):leads;
-  if(!list.length){if(tEl)tEl.innerHTML='';if(eEl){eEl.style.display='block';document.getElementById('dash-list-empty-text').textContent='Nessun lead.';}return;}
+  if(!list.length){
+    if(tEl)tEl.innerHTML='';
+    if(eEl){eEl.style.display='block';document.getElementById('dash-list-empty-text').textContent='Nessun lead.';}
+    return;
+  }
   if(eEl)eEl.style.display='none';
   var rows=list.map(function(l){
     var lid=l._sbid||l.id;
@@ -1563,17 +1567,29 @@ function renderDashCpaList(pf){
       '<td style="font-weight:700;color:'+(earned>0?'var(--accent-light)':'var(--text3)')+'">'+( earned>0?fmt(earned):'&mdash;')+'</td>'+
       '<td>'+phaseBadge(phase)+'</td>'+
       '<td style="font-size:11px;color:var(--text3)">'+(l.date||'&mdash;')+'</td>'+
-      '<td><button class="btn danger" style="padding:3px 7px;font-size:11px" data-delid="'+lid+'" class="dash-del-btn">&#128465;</button></td>'+
+      '<td><button class="btn danger" style="padding:3px 7px;font-size:11px" data-delid="'+lid+'">&#128465;</button></td>'+
     '</tr>';
   }).join('');
-  if(tEl) tEl.innerHTML='<table><thead><tr><th>Lead</th><th>Stato</th><th>Fonte</th><th>Deposito</th><th>Tier</th><th>Guadagnato</th><th>Fase</th><th>Data</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  if(tEl){
+    tEl.innerHTML='<table><thead><tr><th>Lead</th><th>Stato</th><th>Fonte</th><th>Deposito</th><th>Tier</th><th>Guadagnato</th><th>Fase</th><th>Data</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+    tEl.querySelectorAll('.dash-cpa-row').forEach(function(tr){
+      tr.addEventListener('click',function(){openEditLead(tr.dataset.lid);});
+    });
+    tEl.querySelectorAll('[data-delid]').forEach(function(btn){
+      btn.addEventListener('click',function(e){e.stopPropagation();confirmDeleteLead(btn.dataset.delid);});
+    });
+  }
 }
 
 function renderDashRbList(bf){
   var tEl=document.getElementById('dash-list-table');
   var eEl=document.getElementById('dash-list-empty');
   var list=bf?rbClients.filter(function(c){return c.broker===bf;}):rbClients;
-  if(!list.length){if(tEl)tEl.innerHTML='';if(eEl){eEl.style.display='block';document.getElementById('dash-list-empty-text').textContent='Nessun cliente rebate.';}return;}
+  if(!list.length){
+    if(tEl)tEl.innerHTML='';
+    if(eEl){eEl.style.display='block';document.getElementById('dash-list-empty-text').textContent='Nessun cliente rebate.';}
+    return;
+  }
   if(eEl)eEl.style.display='none';
   var BRC={FPG:'#f87171',ULTIMA:'#33e09d',PUPRIME:'#38bdf8'};
   var rows=list.map(function(c){
@@ -1590,14 +1606,13 @@ function renderDashRbList(bf){
       '<td style="font-size:10px;font-weight:700;color:'+sc+'">'+c.status+'</td>'+
     '</tr>';
   }).join('');
-  if(tEl) tEl.innerHTML='<table><thead><tr><th>Cliente</th><th>Broker</th><th>Deposito</th><th>Servizio</th><th>Ricevuto</th><th>Stato</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  if(tEl){
+    tEl.innerHTML='<table><thead><tr><th>Cliente</th><th>Broker</th><th>Deposito</th><th>Servizio</th><th>Ricevuto</th><th>Stato</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    tEl.querySelectorAll('.dash-rb-row').forEach(function(tr){
+      tr.addEventListener('click',function(){openRbClient(tr.dataset.broker,tr.dataset.cid);});
+    });
+  }
 }
-
-// ─── CALENDARIO CUSTOM ───────────────────────────────────────────────────────
-var calFromDate = null;
-var calToDate = null;
-var calFromViewYear, calFromViewMonth, calToViewYear, calToViewMonth;
-var calSelectingFrom = true;
 
 function initCalendars(){
   var now = new Date();
